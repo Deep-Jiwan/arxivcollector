@@ -11,14 +11,17 @@ arXivCollector
 Installation
 ------
 
+### Option A — Python (local)
+
 1. Have Python installed (download it from [here](https://www.python.org/downloads/)).
 2. Clone the repository by running the following command in a terminal:
 ```bash
-git clone https://github.com/koenraijer/arxivcollector.git
+git clone https://github.com/Deep-Jiwan/arxivcollector.git
 ```
 3. Navigate to the cloned repository:
 ```bash
 cd path/to/arxivcollector
+```
 
 4. Probably: create a virtual environment
 ```bash
@@ -31,17 +34,27 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Option B — Docker
+
+Pull the pre-built image from the GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/deep-jiwan/arxivcollector:latest
+```
+
 Getting started
 ------
 
-**arXivCollector** can be used in two ways:
+**arXivCollector** can be used in three ways:
 - By importing the `ArXivCollector()` class; 
-- By executing the `arxivcollectory.py` script from the command line. 
+- By executing the `arxivcollector.py` script from the command line; or
+- By running the Docker image directly as a command-line tool.
 
 ### Step 1: obtain an arXiv search results URL 
 To obtain an arXiv search results URL for your search query, go to [https://arxiv.org/](https://arxiv.org/) or to the [advanced search page](https://arxiv.org/search/advanced) and construct your search query. Press the big blue button that says "Search", wait until you arrive on the page that displays the search results. Now copy the entire URL as is, and you're done ✅. 
 
-### Step 2: use ArXivCollector in one of two ways
+### Step 2: use ArXivCollector in one of three ways
+
 #### In Python
 Run the following Python code (e.g., in a script or from a Jupyter notebook). 
 
@@ -57,14 +70,119 @@ collector.set_mode("csv")
 collector.run('https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first')
 ```
 
-After running this with your own search URL and title, a new file should appear in the parent directory of arXivCollector. 
+After running this with your own search URL and title, a new file should appear in the current working directory.
 
-#### From the commandline
-The first argument after `arxivcollectory.py` is the search URL, the second argument is your title, and the third argument is the type of the output file (csv or bibtex). 
+#### From the command line
+
+```
+python arxivcollector.py URL [--title TITLE] [--mode {bibtex,csv}] [--output DIR]
+```
+
+| Argument | Description | Default |
+|---|---|---|
+| `url` | arXiv search results URL (required) | — |
+| `--title` | Output filename stem | Current timestamp |
+| `--mode` | Output format: `bibtex` or `csv` | `bibtex` |
+| `--output` | Directory in which to save the file | Current directory |
+
+**Example — save a BibTeX file with a custom title:**
+```bash
+python arxivcollector.py \
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first" \
+  --title "parrots" \
+  --mode bibtex
+```
+
+**Example — save a CSV file to a specific directory:**
+```bash
+python arxivcollector.py \
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first" \
+  --title "parrots" \
+  --mode csv \
+  --output /path/to/output
+```
+
+#### With Docker
+
+The Docker image is published to `ghcr.io/deep-jiwan/arxivcollector`. Mount the current directory to `/data` inside the container and pass `--output /data` so the exported file lands in your working directory.
+
+> **Arguments are the same as the command-line interface above.**
+
+---
+
+**Bash / Zsh (Linux & macOS)**
 
 ```bash
-python arxivcollector.py "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first" "output" "csv"
+docker run --rm \
+  -v "$(pwd):/data" \
+  ghcr.io/deep-jiwan/arxivcollector:latest \
+  --output /data \
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first"
 ```
+
+With an optional title and CSV output:
+
+```bash
+docker run --rm \
+  -v "$(pwd):/data" \
+  ghcr.io/deep-jiwan/arxivcollector:latest \
+  --output /data \
+  --title "parrots" \
+  --mode csv \
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first"
+```
+
+---
+
+**PowerShell (Windows)**
+
+```powershell
+docker run --rm `
+  -v "${PWD}:/data" `
+  ghcr.io/deep-jiwan/arxivcollector:latest `
+  --output /data `
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first"
+```
+
+With an optional title and CSV output:
+
+```powershell
+docker run --rm `
+  -v "${PWD}:/data" `
+  ghcr.io/deep-jiwan/arxivcollector:latest `
+  --output /data `
+  --title "parrots" `
+  --mode csv `
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first"
+```
+
+---
+
+**Command Prompt (Windows CMD)**
+
+```cmd
+docker run --rm ^
+  -v "%cd%:/data" ^
+  ghcr.io/deep-jiwan/arxivcollector:latest ^
+  --output /data ^
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first"
+```
+
+With an optional title and CSV output:
+
+```cmd
+docker run --rm ^
+  -v "%cd%:/data" ^
+  ghcr.io/deep-jiwan/arxivcollector:latest ^
+  --output /data ^
+  --title "parrots" ^
+  --mode csv ^
+  "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=stochastic+parrot&terms-0-field=title&classification-physics_archives=all&classification-include_cross_list=include&date-filter_by=all_dates&date-year=&date-from_date=&date-to_date=&date-date_type=submitted_date&abstracts=show&size=50&order=-announced_date_first"
+```
+
+---
+
+In all cases the exported `.bib` (or `.csv`) file will be written to the directory from which you ran the command.
 
 Special thanks
 ------

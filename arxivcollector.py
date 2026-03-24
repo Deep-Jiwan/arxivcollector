@@ -3,6 +3,7 @@
 import argparse
 import datetime
 import logging
+import os
 import sys
 import urllib.parse
 
@@ -170,14 +171,18 @@ class ArXivCollector():
 
 def main():
     parser = argparse.ArgumentParser(description='Retrieve arXiv metadata.')
-    parser.add_argument('url', help='The URL to scrape.')
-    parser.add_argument('title', help='The title for the output file.')
-    parser.add_argument('mode', help='The file type of the output file.')
+    parser.add_argument('url', help='The arXiv search URL to scrape.')
+    parser.add_argument('--title', default=None,
+                        help='Stem of the output filename (default: current timestamp).')
+    parser.add_argument('--mode', default='bibtex', choices=['bibtex', 'csv'],
+                        help='Output file format: bibtex or csv (default: bibtex).')
+    parser.add_argument('--output', default='.',
+                        help='Directory in which to save the output file (default: current directory).')
     args = parser.parse_args()
 
-    arxiv = ArXivCollector()
-    arxiv.set_title(args.title)
-    arxiv.set_mode(args.mode)
+    arxiv = ArXivCollector(mode=args.mode)
+    title = args.title if args.title else arxiv.title
+    arxiv.set_title(os.path.join(args.output, title))
     arxiv.run(args.url)
 
 
